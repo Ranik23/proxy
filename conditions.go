@@ -30,6 +30,12 @@ var IsLocalHost FuncRequestCondititon = func(r *http.Request) bool {
 	return false
 }
 
+func Is(hostname string) FuncRequestCondititon {
+	return func(r *http.Request) bool {
+		return r.Host == hostname 
+	}
+}
+
 func isLoopback(ipStr string) bool {
 	ip := net.ParseIP(ipStr)
 	if ip == nil {

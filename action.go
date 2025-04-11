@@ -23,7 +23,7 @@ func (r *MyReader) Close() error {
 
 
 var AlwaysReject FuncReqHandler = func(r *http.Request) (*http.Response, string) {
-	return nil, "always reject"
+	return nil, "Reject"
 }
 
 var PersonalizedHello FuncReqHandler = func(r *http.Request) (*http.Response, string) {
