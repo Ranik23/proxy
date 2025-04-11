@@ -26,7 +26,7 @@ func main() {
 
 	p := proxy.NewProxy(address, pemPath, keyPath, proto)
 
-  //  p.OnRequest(proxy.IsLocalHost).Do(proxy.AlwaysReject)
+    p.OnRequest(proxy.IsLocalHost).Do(proxy.RedirectHandler)
     
 	if err := p.Run(); err != nil {
         log.Fatal(err)
