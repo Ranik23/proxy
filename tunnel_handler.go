@@ -22,18 +22,18 @@ func (p *Proxy) tunnelHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	for _, req := range p.req_handlers {
-		resp, msg := req(r)
-		if resp == nil {
-			log.Println(msg)
-			return
-		}
-	}
-
 	client_conn, _, err := hikacker.Hijack()
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return
+	}
+
+	for _, req := range p.req_handlers {
+		resp, msg := req(r)
+		log.Println(msg)
+		if resp == nil {
+			return
+		}
 	}
 
 	go transfer(dest_conn, client_conn)
