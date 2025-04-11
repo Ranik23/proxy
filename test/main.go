@@ -1,9 +1,10 @@
-package main 
+package main
 
 import (
 	"flag"
 	"log"
-	"proxy"
+
+	"github.com/Ranik23/proxy"
 )
 
 
