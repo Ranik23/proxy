@@ -2,27 +2,30 @@ package proxy
 
 import (
 	"io"
-	"log"
 	"net"
 	"net/http"
 	"time"
 )
 
+func closeConns(client net.Conn, dest net.Conn) {
+	client.Close()
+	dest.Close()
+}
+
 func (p *Proxy) tunnelHandler(w http.ResponseWriter, r *http.Request) {
-	dest_conn, err := net.DialTimeout("tcp", r.Host, 10 * time.Second)
+	destConn, err := net.DialTimeout("tcp", r.Host, 10*time.Second)
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return
 	}
-	
-	w.WriteHeader(http.StatusOK)
-	hikacker, ok := w.(http.Hijacker)
+
+	hijacker, ok := w.(http.Hijacker)
 	if !ok {
 		http.Error(w, "no hijack found", 500)
 		return
 	}
 
-	client_conn, _, err := hikacker.Hijack()
+	clientConn, _, err := hijacker.Hijack()
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return
@@ -30,18 +33,28 @@ func (p *Proxy) tunnelHandler(w http.ResponseWriter, r *http.Request) {
 
 	for _, req := range p.req_handlers {
 		resp, msg := req(r)
-		log.Println(msg)
-		if resp == nil {
+		if resp != nil {
+			_, err := clientConn.Write([]byte("HTTP/1.1 403 Forbidden\r\nX-Proxy-Error: " + msg + "\r\n\r\n"))
+			if err != nil {
+				return
+			}
+			closeConns(clientConn, destConn)
 			return
 		}
 	}
 
-	go transfer(dest_conn, client_conn)
-	go transfer(client_conn, dest_conn)
+	_, err = clientConn.Write([]byte("HTTP/1.1 200 Connection Established\r\n\r\n"))
+	if err != nil {
+		closeConns(clientConn, destConn)
+		return
+	}
+
+	go transfer(destConn, clientConn)
+	go transfer(clientConn, destConn)
 }
 
+
 func transfer(dest net.Conn, client net.Conn) {
-	defer client.Close()
-	defer dest.Close()
+	defer closeConns(dest, client)
 	io.Copy(client, dest)
 }

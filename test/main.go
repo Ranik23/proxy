@@ -26,7 +26,7 @@ func main() {
 
 	p := proxy.NewProxy(address, pemPath, keyPath, proto)
 
-    p.OnRequest(proxy.Is("http://github.com/Ranik23")).Do(proxy.AlwaysReject)
+    p.OnRequest(proxy.Is("https://example.com")).Do(proxy.InspectRequest)
     
 	if err := p.Run(); err != nil {
         log.Fatal(err)
