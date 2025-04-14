@@ -7,10 +7,6 @@ import (
 	"time"
 )
 
-func closeConns(client net.Conn, dest net.Conn) {
-	client.Close()
-	dest.Close()
-}
 
 func (p *Proxy) tunnelHandler(w http.ResponseWriter, r *http.Request) {
 	destConn, err := net.DialTimeout("tcp", r.Host, 10*time.Second)
@@ -34,10 +30,7 @@ func (p *Proxy) tunnelHandler(w http.ResponseWriter, r *http.Request) {
 	for _, req := range p.req_handlers {
 		resp, msg := req(r)
 		if resp != nil {
-			_, err := clientConn.Write([]byte("HTTP/1.1 403 Forbidden\r\nX-Proxy-Error: " + msg + "\r\n\r\n"))
-			if err != nil {
-				return
-			}
+			clientConn.Write([]byte("HTTP/1.1 403 Forbidden\r\nX-Proxy-Error: " + msg + "\r\n\r\n")) //nolint
 			closeConns(clientConn, destConn)
 			return
 		}
@@ -56,5 +49,10 @@ func (p *Proxy) tunnelHandler(w http.ResponseWriter, r *http.Request) {
 
 func transfer(dest net.Conn, client net.Conn) {
 	defer closeConns(dest, client)
-	io.Copy(client, dest)
+	io.Copy(client, dest) //nolint
+}
+
+func closeConns(client net.Conn, dest net.Conn) {
+	client.Close()
+	dest.Close()
 }

@@ -33,7 +33,7 @@ type RespProxyCond struct {
 func (rcond *RespProxyCond) Do(handler FuncResponseHandler) {
 	rcond.proxy.resp_handlers = append(rcond.proxy.resp_handlers, 
 	FuncResponseHandler(func(resp *http.Response) *http.Response {
-		for _, cond := range rcond.proxy.resp_conds {
+		for _, cond := range rcond.conds {
 			if !cond.HandleResp(resp) {
 				return nil
 			}

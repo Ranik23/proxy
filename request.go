@@ -36,12 +36,12 @@ func (pcond *ReqProxyConds) Do(handler RequestHandler) {
 			log.Printf("[proxy] Handling request for host: %s, path: %s", r.Host, r.URL.Path)
 			for i, cond := range pcond.conds {
 				if !cond.HandleReq(r) {
-					log.Printf("[proxy] Condition #%d failed for request to %s%s", i+1, r.Host, r.URL.Path)
+					log.Printf("[proxy] Condition #%d failed for request to %s%s", i + 1, r.Host, r.URL.Path)
 					return nil, "Condition failed"
 				}
 				log.Printf("[proxy] Condition #%d passed", i+1)
 			}
-			log.Printf("[proxy] All conditions passed or no conditions were provided, invoking handler")
+			log.Printf("[proxy] All conditions passed, invoking handler")
 			return handler.Handle(r)
 		}))
 }

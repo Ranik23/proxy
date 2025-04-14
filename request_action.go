@@ -2,6 +2,7 @@ package proxy
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"strings"
@@ -9,27 +10,12 @@ import (
 )
 
 
-type MyReader struct {
-	strings.Reader
-}
-
-func NewMyReader(s string) *MyReader {
-	return &MyReader{
-		Reader: *strings.NewReader(s),
-	}
-}
-
-func (r *MyReader) Close() error {
-	return nil
-}
-
-
 var AlwaysReject FuncReqHandler = func(r *http.Request) (*http.Response, string) {
 	message := "Access Reject"
 	return &http.Response{
 		Status: "403",
 		StatusCode: http.StatusForbidden,
-		Body: NewMyReader(message),
+		Body: io.NopCloser(strings.NewReader(message)),
 	}, "Access Reject"
 }
 
@@ -40,13 +26,13 @@ func BlockUserAgent(agent string) FuncReqHandler {
 			return &http.Response{
 				Status:     "403 Forbidden",
 				StatusCode: http.StatusForbidden,
-				Body:       NewMyReader(msg),
+				Body:       io.NopCloser(strings.NewReader(msg)),
 			}, msg
 		}
 		return &http.Response{
 			Status:     "200 OK",
 			StatusCode: http.StatusOK,
-			Body:       NewMyReader("User-Agent allowed."),
+			Body:      io.NopCloser(strings.NewReader("User-Agent allowed.")),
 		}, "User-Agent check passed"
 	}
 }
@@ -59,7 +45,7 @@ func SimulateDelay(d time.Duration) FuncReqHandler {
 		return &http.Response{
 			Status:     "200 OK",
 			StatusCode: http.StatusOK,
-			Body:       NewMyReader(msg),
+			Body:       io.NopCloser(strings.NewReader(msg)),
 		}, msg
 	}
 }
@@ -80,7 +66,7 @@ var InspectRequest FuncReqHandler = func(r *http.Request) (*http.Response, strin
 	return &http.Response{
 		Status:     "200 OK",
 		StatusCode: http.StatusOK,
-		Body:       NewMyReader("Request inspected"),
+		Body:       io.NopCloser(strings.NewReader("Request inspected")),
 	}, "Request inspected"
 }
 
@@ -95,6 +81,6 @@ var PersonalizedHello FuncReqHandler = func(r *http.Request) (*http.Response, st
 	return &http.Response{
 		Status:     "200 OK",
 		StatusCode: http.StatusOK,
-		Body:       NewMyReader(message),
+		Body:       io.NopCloser(strings.NewReader(message)),
 	}, "Personalized hello sent"
 }
